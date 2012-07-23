@@ -6,7 +6,12 @@
 
 
     <?php if (isset($errors) && count($errors) > 0): ?>
-    <?php echo $this->render('errors', array('errors' => $errors)); ?>
+    <?php
+        $data = array(
+            'errors' => $errors,
+        );
+        echo View::forge('errors', $data);
+    ?>
     <?php endif; ?>
 
     <?php

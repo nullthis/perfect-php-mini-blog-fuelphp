@@ -15,6 +15,7 @@ class Controller_Account extends Controller_Template
     public function before(){
         parent::before();
         $this->session  = new Session();
+        $this->db_manager  = new DbManager();
     }
 
 
@@ -46,20 +47,30 @@ class Controller_Account extends Controller_Template
     public function action_register()
     {
         if ($this->session->isAuthenticated()) {
-            return $this->redirect('/account');
+            Response::redirect('/account');
         }
 
-        if (!$this->request->isPost()) {
-            $this->forward404();
+        if (Input::method() != 'POST') {
+            throw new HttpNotFoundException;;
         }
 
+/*
         $token = $this->request->getPost('_token');
         if (!$this->checkCsrfToken('account/signup', $token)) {
             return $this->redirect('/account/signup');
         }
-
-        $user_name = $this->request->getPost('user_name');
-        $password = $this->request->getPost('password');
+*/
+        // CSRFトークンが正しいかチェック
+        if ( ! \Security::check_token())
+        {
+        	// CSRF攻撃またはCSRFトークンの期限切れ
+            Response::redirect('/account/signup');
+        }
+    
+        $user_name = Input::post('user_name');
+        $password = Input::post('password');
+//        $this->request->getPost('user_name');
+//        $password = $this->request->getPost('password');
 
         $errors = array();
 
@@ -87,12 +98,24 @@ class Controller_Account extends Controller_Template
             return $this->redirect('/');
         }
 
+
+        $data = array(
+           'user_name'=>$user_name,
+           'password'=>$password,
+           'errors'    => $errors,
+           'session' => $this->session,
+        );
+        $this->template->title   = 'アカウント登録';
+        $this->template->session = $this->session;
+        $this->template->content = View::forge('account/signup', $data);
+/*
         return $this->render(array(
             'user_name' => $user_name,
             'password'  => $password,
             'errors'    => $errors,
             '_token'    => $this->generateCsrfToken('account/signup'),
         ), 'signup');
+*/
     }
 
     public function action_index()
